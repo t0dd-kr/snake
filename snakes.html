@@ -1,0 +1,299 @@
+<html>
+      <head>
+            <meta property="og:title" content="S N A K E">
+            <meta property="og:image" content="https://javascript-framework-t0ddkr.c9users.io/Games/snake.jpg">
+            <meta property="og:description" content="t0dd's SNAKE GAME, Plz Enjoy :P">
+            <meta property="og:url" content="https://ide.c9.io/t0ddkr/javascript_framework">
+            <meta charset="UTF-8" /><title>S N A K E</title>
+      </head>
+      <body onload = "onLoad()" onresize = "onResize()">
+            <canvas id="canvas" style="position:absolute;"></canvas>
+      </body>
+      <script>
+            var frame = 0;
+            var canvas = document.getElementById('canvas');
+            var ctx = canvas.getContext('2d');
+            var rand = function(n,m)
+            {
+                  if(m === undefined)
+                        return parseInt(Math.random() * n * 10) % n;
+                  else
+
+                       return parseInt(Math.random() * m * 10) % (m - n + 1) + n;
+            }
+            var gameOver = false;
+            var dir = 2;
+            var eatFruit = false;
+            var snakeColor = "black";
+            var snake = function(prev,x,y)
+            {
+                  this.prev = prev;
+                  this.next = null;
+                  this.x = x;
+                  this.y = y;
+                  stage[this.y][this.x] = 1;
+                  this.move = function(x,y)
+                  {
+                        if(this.prev == null)
+                        {
+                              if(this.y + y >= 20 || this.x + x >= 30 || this.y + y < 0 || this.x + x < 0)
+                              {
+                                    gameOver = true;
+                                    return;
+                              }
+                              else if(stage[this.y+y][this.x+x] == 1)
+                              {
+                                    gameOver = true;
+                                    return;
+                              }
+                              else
+                              {
+                                    stage[this.y][this.x] = 0;
+                                    if(stage[this.y+y][this.x+x] >= 2)
+                                    {
+                                          eatFruit = true;
+                                          snakeColor = fruitsColor[stage[this.y+y][this.x+x] - 2];
+                                    }
+                                    this.next.move();
+                                    this.x += x;
+                                    this.y += y;
+                              }
+                        }
+                        else
+                        {
+                              stage[this.y][this.x] = 0;
+                              if(this.next != null)
+                              {
+                                    this.next.move();
+                              }
+                              else {
+                                    if(eatFruit)
+                                    {
+                                          this.next = new snake(this,this.x,this.y);
+                                          eatFruit = false;
+                                    }
+                              }
+                              this.x = this.prev.x;
+                              this.y = this.prev.y;
+                        }
+                        stage[this.y][this.x] = 1;
+                  }
+            }
+            var onLoad = function()
+            {
+                  onResize();
+            }
+            var onResize = function()
+            {
+                  canvas.width = 600;
+                  canvas.height = 400;
+                  canvas.style.left = window.innerWidth / 2 - 300;
+                  canvas.style.top = window.innerHeight / 2 - 200;
+            }
+            var head;
+            var snakelen = function()
+            {
+                  var tmp = head;
+                  var i ;
+                  for(i=1;tmp.next != null;i++)
+                  {
+                        tmp = tmp.next;
+                  }
+                  return i;
+            }
+            var stage = [];
+            var fruitsColor = ["crimson","dodgerblue","gold","purple","orange"];
+            var move = function()
+            {
+                  switch(dir)
+                  {
+                        case 0 :
+                              head.move(-1,0);
+                        break;
+                        case 1 :
+                              head.move(0,-1);
+                        break;
+                        case 2 :
+                              head.move(1,0);
+                        break;
+                        case 3 :
+                              head.move(0,1);
+                        break;
+                  }
+            }
+            var mode = 0;
+            var snakeImage = new Image();
+            snakeImage.src = "snake.jpg";
+            var draw = function()
+            {
+                  frame++;
+                  ctx.fillStyle = "black";
+                  ctx.fillRect(0,0,canvas.width,canvas.height);
+                  ctx.fillStyle = "white";
+                  ctx.fillRect(0,0,600,440);
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(0,0,600,400);
+                  switch(mode)
+                  {
+                        case 0 :
+                              ctx.drawImage(snakeImage,0,0,1100,1000,135,20,330,300);
+                              ctx.fillStyle = "black";
+                              ctx.textAlign = "center"
+                              ctx.font = "30px Comic Sans MS";
+                              ctx.fillText("Press Any Key to Start",300,370);
+                              requestAnimationFrame(draw);
+                        break;
+                        case 1 :
+                              if(frame % 120 == 0)
+                              {
+                                    genFruits();
+                              }
+                              ctx.lineWidth = 1;
+                              ctx.setLineDash([1,3]);
+                              ctx.strokeStyle = "black";
+                              ctx.beginPath();
+                              for(var i=0;i<20;i++)
+                              {
+                                    ctx.moveTo(0,i*20);
+                                    ctx.lineTo(600,i*20);
+                              }
+                              for(var j=0;j<30;j++)
+                              {
+                                    ctx.moveTo(j*20,0);
+                                    ctx.lineTo(j*20,400);
+                              }
+                              ctx.stroke();
+                              ctx.setLineDash([]);
+
+                              if(frame % 5 == 0)
+                                    move();
+                              for(var i=0;i<20;i++)
+                              {
+                                    for(var j=0;j<30;j++)
+                                    {
+                                          if(stage[i][j] == 1)
+                                          {
+                                                ctx.fillStyle= snakeColor;
+                                                ctx.fillRect(j*20+1,i*20+1,18,18);
+                                          }
+                                          else if(stage[i][j] > 1)
+                                          {
+                                                ctx.fillStyle = "lime";
+                                                ctx.fillRect(j*20+7,i*20+3,6,3);
+                                                ctx.fillStyle = fruitsColor[stage[i][j]-2];
+                                                ctx.fillRect(j*20+4,i*20+6,12,10);
+                                          }
+                                    }
+                              }
+                              if(isFull() && snakelen() == 600)
+                              {
+                                    ctx.fillStyle = "black";
+                                    ctx.font = "50px Cosmic Sans MS";
+                                    ctx.textAlign = "center"
+                                    ctx.fillText('Congratulation',300,210);
+                                    ctx.font = "20px Cosmic Sans MS";
+                                    ctx.fillText("Press SPACE BAR to Retry",300,260);
+                              }
+                              else if(!gameOver)
+                                    requestAnimationFrame(draw);
+                              else {
+                                    ctx.fillStyle = "black";
+                                    ctx.font = "50px Cosmic Sans MS";
+                                    ctx.textAlign = "center"
+                                    ctx.fillText(snakelen(),300,210);
+                                    ctx.font = "20px Cosmic Sans MS";
+                                    ctx.fillText("Press SPACE BAR to Retry",300,260);
+                              }
+                        break;
+                  }
+            }
+            var isFull = function()
+            {
+                  for(var i=0;i<20;i++)
+                  {
+                        for(var j=0;j<30;j++)
+                        {
+                              if(stage[i][j] != 1)
+                                    return false;
+                        }
+                  }
+                  return true;
+            }
+            var genFruits = function()
+            {
+                  var tmp_x, tmp_y;
+                  if(!isFull())
+                  {
+                        do {
+                              tmp_x = rand(30);
+                              tmp_y = rand(20);
+                        }while(stage[tmp_y][tmp_x] != 0)
+                        stage[tmp_y][tmp_x] = rand(2,fruitsColor.length + 1);
+                  }
+            }
+            var init = function()
+            {
+                  snakeColor = "black"
+                  eatFruit = false;
+                  frame = 0;
+                  dir = 2;
+                  gameOver = false;
+                  for(var i=0;i<20;i++)
+                  {
+                        stage.push(new Array(30));
+                        for(var j=0;j<30;j++)
+                        {
+                              stage[i][j] = 0;
+                        }
+                  }
+                  head = new snake(null,16,10);
+                  head.next = new snake(head,15,10);
+                  head.next.next = new snake(head.next,14,10);
+                  genFruits();
+                  draw();
+            }
+            var onMouseDown = function(event)
+            {
+                  var Mouse = {
+                        X : event.pageX,
+                        Y : event.pageY
+                  }
+            }
+            var onKeyDown = function(event)
+            {
+                  var keyCode = event.keyCode | event.which;
+                  if(mode == 0)
+                  {
+                        mode = 1;
+                  }
+                  else
+                  {
+                        switch(keyCode)
+                        {
+                              case 37 : //left
+                                    if(!(head.y == head.next.y && head.x-1 == head.next.x))
+                                          dir = keyCode - 37;
+                              break;
+                              case 39 : //right;
+                                    if(!(head.y == head.next.y && head.x+1 == head.next.x))
+                                          dir = keyCode - 37;
+                              break;
+                              case 38 : //up
+                                          if(!(head.y-1 == head.next.y && head.x == head.next.x))
+                                    dir = keyCode - 37;
+                              break;
+                              case 40 : //down
+                                    if(!(head.y+1 == head.next.y && head.x == head.next.x))
+                                          dir = keyCode - 37;
+                              break;
+                              case 32 :
+                                    if(gameOver)
+                                          init();
+                        }
+                  }
+            }
+            onkeydown = onKeyDown;
+            onmousedown = onMouseDown;
+            init();
+      </script>
+</html>
